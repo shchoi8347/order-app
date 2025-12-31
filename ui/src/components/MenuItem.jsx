@@ -6,18 +6,15 @@ const MenuItem = ({ item, onAddToCart }) => {
   const handleOptionChange = (e) => {
     const optionName = e.target.name;
     if (e.target.checked) {
-      setSelectedOptions([...selectedOptions, optionName]);
+      setSelectedOptions(prev => [...prev, optionName]);
     } else {
-      setSelectedOptions(selectedOptions.filter(opt => opt !== optionName));
+      setSelectedOptions(prev => prev.filter(opt => opt !== optionName));
     }
   };
 
   const handleAddToCartClick = () => {
     onAddToCart(item, selectedOptions);
-    // Reset options after adding to cart, and uncheck the boxes
-    const checkboxes = document.querySelectorAll(`input[type="checkbox"][id^="${item.id}-"]`);
-    checkboxes.forEach(cb => cb.checked = false);
-    setSelectedOptions([]);
+    setSelectedOptions([]); // Reset internal state
   };
 
   return (
@@ -33,6 +30,7 @@ const MenuItem = ({ item, onAddToCart }) => {
               type="checkbox"
               id={`${item.id}-${option.name}`}
               name={option.name}
+              checked={selectedOptions.includes(option.name)} // Controlled component
               onChange={handleOptionChange}
             />
             <label htmlFor={`${item.id}-${option.name}`}>
