@@ -83,17 +83,12 @@ main {
   flex-direction: column;
 }
 
-.item-image-placeholder {
+.item-image {
   width: 100%;
   height: 150px;
-  background-color: #e9ecef;
-  border: 1px dashed #ced4da;
-  box-sizing: border-box;
+  object-fit: cover;
+  border-radius: 4px;
   margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6c757d;
 }
 
 .item-name {

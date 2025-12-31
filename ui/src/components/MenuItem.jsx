@@ -19,7 +19,7 @@ const MenuItem = ({ item, onAddToCart }) => {
 
   return (
     <div className="menu-item-card">
-      <div className="item-image-placeholder">Image Placeholder</div>
+      <img src={item.image_url} alt={item.name} className="item-image" />
       <h3 className="item-name">{item.name}</h3>
       <p className="item-price">{item.price.toLocaleString()}원</p>
       <p className="item-description">{item.description}</p>
