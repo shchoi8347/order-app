@@ -1,0 +1,50 @@
+import React, { useState } from 'react';
+
+const MenuItem = ({ item, onAddToCart }) => {
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
+  const handleOptionChange = (e) => {
+    const optionName = e.target.name;
+    if (e.target.checked) {
+      setSelectedOptions([...selectedOptions, optionName]);
+    } else {
+      setSelectedOptions(selectedOptions.filter(opt => opt !== optionName));
+    }
+  };
+
+  const handleAddToCartClick = () => {
+    onAddToCart(item, selectedOptions);
+    // Reset options after adding to cart, and uncheck the boxes
+    const checkboxes = document.querySelectorAll(`input[type="checkbox"][id^="${item.id}-"]`);
+    checkboxes.forEach(cb => cb.checked = false);
+    setSelectedOptions([]);
+  };
+
+  return (
+    <div className="menu-item-card">
+      <div className="item-image-placeholder">Image Placeholder</div>
+      <h3 className="item-name">{item.name}</h3>
+      <p className="item-price">{item.price.toLocaleString()}원</p>
+      <p className="item-description">{item.description}</p>
+      <div className="item-options">
+        {item.options.map(option => (
+          <div key={option.name}>
+            <input
+              type="checkbox"
+              id={`${item.id}-${option.name}`}
+              name={option.name}
+              onChange={handleOptionChange}
+            />
+            <label htmlFor={`${item.id}-${option.name}`}>
+              {option.name} (+{option.price.toLocaleString()}원)
+            </label>
+          </div>
+        ))}
+      </div>
+      <button className="btn add-to-cart-btn" onClick={handleAddToCartClick}>담기</button>
+    </div>
+  );
+};
+
+export default MenuItem;
+
