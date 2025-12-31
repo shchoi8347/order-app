@@ -114,3 +114,54 @@
       - **상태 변경 버튼**:
         - 주문의 현재 상태가 버튼에 표시됩니다. (예: '주문 접수')
         - 버튼을 클릭하여 주문 상태를 다음 단계로 변경할 수 있습니다. (주문 접수 → 제조 중 → 제조 완료)
+
+---
+
+## 5. 백엔드 명세 (Backend Specification)
+
+### 5.1. 데이터 모델 (Data Model)
+
+- **Menus**: 커피 이름, 설명, 가격, 이미지, 재고 수량
+  - `id`: (Primary Key) 메뉴 고유 ID
+  - `name`: (string) 메뉴 이름
+  - `description`: (string) 메뉴 설명
+  - `price`: (number) 가격
+  - `image_url`: (string) 이미지 주소
+  - `stock`: (number) 재고 수량
+- **Options**: 옵션 이름, 옵션 가격, 연결할 메뉴
+  - `id`: (Primary Key) 옵션 고유 ID
+  - `name`: (string) 옵션 이름 (예: 샷 추가)
+  - `price`: (number) 추가 가격
+  - `menu_id`: (Foreign Key) `Menus` 테이블과 연결
+- **Orders**: 주문 일시, 주문 내용(메뉴, 수량, 옵션, 금액)
+  - `id`: (Primary Key) 주문 고유 ID
+  - `created_at`: (timestamp) 주문 일시
+  - `total_price`: (number) 총 주문 금액
+  - `status`: (string) 주문 상태 (예: '주문 접수', '제조 중', '제조 완료')
+- **Order_Items**: 개별 주문 항목을 저장하는 테이블
+  - `id`: (Primary Key) 주문 항목 고유 ID
+  - `order_id`: (Foreign Key) `Orders` 테이블과 연결
+  - `menu_id`: (Foreign Key) `Menus` 테이블과 연결
+  - `quantity`: (number) 수량
+  - `options`: (JSON or string) 선택한 옵션 목록
+
+### 5.2. 데이터 흐름 (Data Flow)
+
+1.  **메뉴 조회**: 사용자가 '주문하기' 페이지에 접속하면, 프런트엔드는 서버에 메뉴 목록을 요청합니다. 서버는 `Menus`와 `Options` 테이블에서 모든 메뉴 정보를 가져와 프런트엔드에 전달합니다.
+2.  **재고 조회**: 사용자가 '관리자' 페이지에 접속하면, 서버는 `Menus` 테이블에서 각 메뉴의 `stock`(재고) 정보를 프런트엔드에 전달합니다.
+3.  **주문 생성**: 사용자가 장바구니에서 '주문하기' 버튼을 클릭하면, 프런트엔드는 주문 정보를 서버에 전송합니다. 서버는 다음 작업을 수행합니다.
+    - `Orders` 테이블에 새로운 주문(주문 시간, 총 금액, 초기 상태 '주문 접수')을 생성합니다.
+    - `Order_Items` 테이블에 해당 주문에 포함된 각 메뉴 항목(수량, 선택 옵션 등)을 저장합니다.
+    - 주문된 수량만큼 `Menus` 테이블의 관련 메뉴 `stock`을 감소시킵니다.
+4.  **주문 상태 관리**: 관리자가 '주문 현황'에서 주문 상태 변경 버튼을 클릭하면, 프런트엔드는 해당 `order_id`와 새로운 `status`를 서버에 전송합니다. 서버는 `Orders` 테이블에서 해당 주문의 상태를 업데이트합니다.
+
+### 5.3. API 설계 (API Design)
+
+| Method  | Endpoint                 | 설명                                       | Request Body (예시)                   | Response (예시)                                   |
+| :------ | :----------------------- | :----------------------------------------- | :------------------------------------ | :------------------------------------------------ |
+| `GET`   | `/api/menus`             | 모든 메뉴와 옵션 목록을 가져옵니다.        | 없음                                  | `[{ id, name, price, options: [...] }, ...]`      |
+| `GET`   | `/api/orders`            | 모든 주문 목록을 가져옵니다. (관리자용)    | 없음                                  | `[{ id, created_at, items: [...], status }, ...]` |
+| `GET`   | `/api/inventory`         | 모든 메뉴의 재고 정보를 가져옵니다.        | 없음                                  | `[{ id, name, stock }, ...]`                      |
+| `POST`  | `/api/orders`            | 새로운 주문을 생성합니다.                  | `{ items: [...], totalPrice: 25000 }` | `{ success: true, orderId: 123 }`                 |
+| `PATCH` | `/api/orders/:orderId`   | 특정 주문의 상태를 변경합니다.             | `{ status: '제조 중' }`               | `{ success: true, updatedOrder: {...} }`          |
+| `PATCH` | `/api/inventory/:menuId` | 특정 메뉴의 재고를 수정합니다. (수동 조절) | `{ stock: 15 }`                       | `{ success: true, updatedItem: {...} }`           |
