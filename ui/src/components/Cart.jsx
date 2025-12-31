@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Cart = ({ cartItems, totalPrice }) => {
+const Cart = ({ cartItems, totalPrice, onPlaceOrder }) => {
   return (
     <section className="cart-section">
       <h2 className="cart-title">장바구니</h2>
@@ -24,7 +24,13 @@ const Cart = ({ cartItems, totalPrice }) => {
             <span className="total-price-label">총 금액</span>
             <span className="total-price-value">{totalPrice.toLocaleString()}원</span>
           </div>
-          <button className="btn order-btn" disabled={cartItems.length === 0}>주문하기</button>
+          <button 
+            className="btn order-btn" 
+            disabled={cartItems.length === 0}
+            onClick={onPlaceOrder}
+          >
+            주문하기
+          </button>
         </div>
       </div>
     </section>

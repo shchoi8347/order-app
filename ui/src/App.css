@@ -210,3 +210,133 @@ main {
 .order-btn {
   width: 100%;
 }
+
+/* Admin Page */
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.admin-section {
+  width: 100%;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fff;
+}
+
+.admin-section-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* Admin Dashboard */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  text-align: center;
+}
+
+.dashboard-item {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.dashboard-item-title {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: #495057;
+}
+
+.dashboard-item-count {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+/* Inventory Status */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.inventory-item {
+  border: 1px solid #e9ecef;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+
+.inventory-item-name {
+  margin: 0 0 10px 0;
+  font-weight: bold;
+}
+
+.inventory-item-stock {
+  margin: 0 0 10px 0;
+  font-size: 1.25rem;
+}
+
+.stock-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-bottom: 15px;
+  color: white;
+}
+.stock-status.normal { background-color: #28a745; }
+.stock-status.warning { background-color: #ffc107; color: #212529; }
+.stock-status.soldout { background-color: #dc3545; }
+
+.stock-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.stock-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ced4da;
+  background-color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Order List */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.order-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.order-details {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.order-timestamp, .order-menu, .order-price {
+  min-width: 150px;
+}
+
+.order-status-btn {
+  min-width: 100px;
+}
