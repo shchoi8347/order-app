@@ -2,28 +2,29 @@ import React from 'react';
 
 const OrderItem = ({ order, onUpdateOrderStatus }) => {
   const handleStatusChange = () => {
-    // Explicitly check the current status and set the next one.
     switch (order.status) {
       case '주문 접수':
+        onUpdateOrderStatus(order.id, '제조 시작');
+        break;
+      case '제조 시작':
         onUpdateOrderStatus(order.id, '제조 중');
         break;
       case '제조 중':
         onUpdateOrderStatus(order.id, '제조 완료');
         break;
       default:
-        // Do nothing if status is '제조 완료' or something else.
         return;
     }
   };
 
-  const formattedTimestamp = new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).format(order.timestamp);
+  const formattedTimestamp = new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(new Date(order.created_at));
   
   const menuSummary = order.items
     .map(item => `${item.name} x ${item.quantity}`)
@@ -34,7 +35,7 @@ const OrderItem = ({ order, onUpdateOrderStatus }) => {
       <div className="order-details">
         <span className="order-timestamp">{formattedTimestamp}</span>
         <span className="order-menu">{menuSummary}</span>
-        <span className="order-price">{order.totalPrice.toLocaleString()}원</span>
+        <span className="order-price">{order.total_price.toLocaleString()}원</span>
       </div>
       <button 
         className="btn order-status-btn" 
@@ -42,7 +43,8 @@ const OrderItem = ({ order, onUpdateOrderStatus }) => {
         disabled={order.status === '제조 완료'}
       >
         {order.status === '주문 접수' && '제조 시작'}
-        {order.status === '제조 중' && '제조 중'}
+        {order.status === '제조 시작' && '제조 중'}
+        {order.status === '제조 중' && '제조 완료'}
         {order.status === '제조 완료' && '제조 완료'}
       </button>
     </div>
@@ -72,7 +74,7 @@ const Orders = ({ orders, onUpdateOrderStatus }) => {
         {displayOrders.length === 0 ? (
           <p>현재 접수된 주문이 없습니다.</p>
         ) : (
-          displayOrders.slice().reverse().map(order => (
+          displayOrders.map(order => (
             <OrderItem key={order.id} order={order} onUpdateOrderStatus={onUpdateOrderStatus} />
           ))
         )}

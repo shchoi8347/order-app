@@ -1,17 +1,43 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import OrderPage from "./pages/OrderPage";
 import AdminPage from "./pages/AdminPage";
 import "./App.css";
 
-import { mockMenuItems, initialInventory } from "./data";
+const API_URL = "http://localhost:3001/api";
 
 function App() {
+  const [menuItems, setMenuItems] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [inventory, setInventory] = useState(initialInventory);
+  const [inventory, setInventory] = useState([]);
 
+  // Fetch initial data from backend
+  const fetchData = useCallback(async () => {
+    try {
+      const [menusRes, ordersRes, inventoryRes] = await Promise.all([
+        fetch(`${API_URL}/menus`),
+        fetch(`${API_URL}/orders`),
+        fetch(`${API_URL}/inventory`),
+      ]);
+      const menusData = await menusRes.json();
+      const ordersData = await ordersRes.json();
+      const inventoryData = await inventoryRes.json();
+      
+      setMenuItems(menusData);
+      setOrders(ordersData);
+      setInventory(inventoryData);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Frontend Logic (Cart)
   const handleAddToCart = (item, selectedOptions) => {
     const optionsPrice = selectedOptions.reduce((total, optionName) => {
       const option = item.options.find((opt) => opt.name === optionName);
@@ -19,99 +45,68 @@ function App() {
     }, 0);
     const priceWithOption = item.price + optionsPrice;
     const cartId = `${item.id}-${selectedOptions.sort().join("-")}`;
-
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (cartItem) => cartItem.cartId === cartId
-      );
-      if (existingItem) {
-        return prevItems.map((cartItem) =>
-          cartItem.cartId === cartId
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      } else {
-        return [
-          ...prevItems,
-          {
-            ...item,
-            cartId,
-            options: selectedOptions,
-            priceWithOption,
-            quantity: 1,
-          },
-        ];
-      }
-    });
-  };
-
-  const handlePlaceOrder = () => {
-    if (cartItems.length === 0) return;
-    const newOrder = {
-      id: Date.now(),
-      timestamp: new Date(),
-      items: cartItems,
-      totalPrice: totalPrice,
-      status: "주문 접수",
-    };
-    setOrders((prevOrders) => [newOrder, ...prevOrders]);
-    setCartItems([]); // Clear cart after placing order
-    alert("주문이 완료되었습니다!");
-  };
-
-  const handleUpdateInventory = (itemId, newStock) => {
-    setInventory((prevInventory) =>
-      prevInventory.map((item) =>
-        item.id === itemId ? { ...item, stock: Math.max(0, newStock) } : item
-      )
-    );
-  };
-
-  const handleUpdateOrderStatus = (orderId, newStatus) => {
-    const orderToUpdate = orders.find((o) => o.id === orderId);
-
-    // If the order is being completed, update the inventory first.
-    if (
-      orderToUpdate &&
-      newStatus === "제조 완료" &&
-      orderToUpdate.status !== "제조 완료"
-    ) {
-      setInventory((prevInventory) => {
-        const inventoryUpdates = {};
-        orderToUpdate.items.forEach((item) => {
-          inventoryUpdates[item.id] =
-            (inventoryUpdates[item.id] || 0) + item.quantity;
-        });
-
-        return prevInventory.map((inventoryItem) => {
-          if (inventoryUpdates[inventoryItem.id]) {
-            return {
-              ...inventoryItem,
-              stock: Math.max(
-                0,
-                inventoryItem.stock - inventoryUpdates[inventoryItem.id]
-              ),
-            };
-          }
-          return inventoryItem;
-        });
-      });
+    
+    const existingItem = cartItems.find((cartItem) => cartItem.cartId === cartId);
+    if (existingItem) {
+      setCartItems(cartItems.map((cartItem) =>
+        cartItem.cartId === cartId
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      ));
+    } else {
+      setCartItems([...cartItems, { ...item, cartId, options: selectedOptions, priceWithOption, quantity: 1 }]);
     }
-
-    // Then, update the order status.
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
   };
 
-  const totalPrice = useMemo(() => {
-    return cartItems.reduce(
-      (total, item) => total + item.priceWithOption * item.quantity,
-      0
-    );
-  }, [cartItems]);
+  const totalPrice = cartItems.reduce((total, item) => total + (item.priceWithOption * item.quantity), 0);
+  
+  // API Calls (Mutations)
+  const handlePlaceOrder = async () => {
+    if (cartItems.length === 0) return;
+    try {
+      const response = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cartItems, totalPrice }),
+      });
+      if (response.ok) {
+        setCartItems([]);
+        alert("주문이 완료되었습니다!");
+        fetchData(); // Refetch all data to update UI
+      } else {
+        throw new Error('Failed to place order');
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("주문 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleUpdateInventory = async (itemId, newStock) => {
+    try {
+      await fetch(`${API_URL}/inventory/${itemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: newStock }),
+      });
+      fetchData(); // Refetch
+    } catch (error) {
+      console.error("Error updating inventory:", error);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await fetch(`${API_URL}/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      fetchData(); // Refetch
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    }
+  };
 
   return (
     <Router>
@@ -122,7 +117,7 @@ function App() {
             path="/"
             element={
               <OrderPage
-                menuItems={mockMenuItems}
+                menuItems={menuItems}
                 cartItems={cartItems}
                 onAddToCart={handleAddToCart}
                 totalPrice={totalPrice}
