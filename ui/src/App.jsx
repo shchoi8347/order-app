@@ -5,9 +5,10 @@ import OrderPage from "./pages/OrderPage";
 import AdminPage from "./pages/AdminPage";
 import "./App.css";
 
-const API_URL = "http://localhost:3001/api";
+//const API_URL = "http://localhost:3001/api";
+const API_URL = "https://order-app-backend-nq22.onrender.com/api";
 
-function App() {
+https: function App() {
   const [menuItems, setMenuItems] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -24,7 +25,7 @@ function App() {
       const menusData = await menusRes.json();
       const ordersData = await ordersRes.json();
       const inventoryData = await inventoryRes.json();
-      
+
       setMenuItems(menusData);
       setOrders(ordersData);
       setInventory(inventoryData);
@@ -45,28 +46,44 @@ function App() {
     }, 0);
     const priceWithOption = item.price + optionsPrice;
     const cartId = `${item.id}-${selectedOptions.sort().join("-")}`;
-    
-    const existingItem = cartItems.find((cartItem) => cartItem.cartId === cartId);
+
+    const existingItem = cartItems.find(
+      (cartItem) => cartItem.cartId === cartId
+    );
     if (existingItem) {
-      setCartItems(cartItems.map((cartItem) =>
-        cartItem.cartId === cartId
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      ));
+      setCartItems(
+        cartItems.map((cartItem) =>
+          cartItem.cartId === cartId
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        )
+      );
     } else {
-      setCartItems([...cartItems, { ...item, cartId, options: selectedOptions, priceWithOption, quantity: 1 }]);
+      setCartItems([
+        ...cartItems,
+        {
+          ...item,
+          cartId,
+          options: selectedOptions,
+          priceWithOption,
+          quantity: 1,
+        },
+      ]);
     }
   };
 
-  const totalPrice = cartItems.reduce((total, item) => total + (item.priceWithOption * item.quantity), 0);
-  
+  const totalPrice = cartItems.reduce(
+    (total, item) => total + item.priceWithOption * item.quantity,
+    0
+  );
+
   // API Calls (Mutations)
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0) return;
     try {
       const response = await fetch(`${API_URL}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: cartItems, totalPrice }),
       });
       if (response.ok) {
@@ -74,7 +91,7 @@ function App() {
         alert("주문이 완료되었습니다!");
         fetchData(); // Refetch all data to update UI
       } else {
-        throw new Error('Failed to place order');
+        throw new Error("Failed to place order");
       }
     } catch (error) {
       console.error("Error placing order:", error);
@@ -85,8 +102,8 @@ function App() {
   const handleUpdateInventory = async (itemId, newStock) => {
     try {
       await fetch(`${API_URL}/inventory/${itemId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stock: newStock }),
       });
       fetchData(); // Refetch
@@ -98,8 +115,8 @@ function App() {
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
       await fetch(`${API_URL}/orders/${orderId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       fetchData(); // Refetch
