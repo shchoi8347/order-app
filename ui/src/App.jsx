@@ -8,7 +8,7 @@ import "./App.css";
 //const API_URL = "http://localhost:3001/api";
 const API_URL = "https://order-app-backend-nq22.onrender.com/api";
 
-https: function App() {
+function App() {
   const [menuItems, setMenuItems] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [orders, setOrders] = useState([]);
