@@ -6,7 +6,8 @@ import AdminPage from "./pages/AdminPage";
 import "./App.css";
 
 //const API_URL = "http://localhost:3001/api";
-const API_URL = "https://order-app-backend-nq22.onrender.com/api";
+//const API_URL = "https://order-app-backend-nq22.onrender.com/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 function App() {
   const [menuItems, setMenuItems] = useState([]);
